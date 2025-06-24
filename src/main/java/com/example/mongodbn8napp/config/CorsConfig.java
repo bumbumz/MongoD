@@ -11,7 +11,7 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         System.out.println("Configuring CORS for origins: https://fe-mongod.vercel.app, http://localhost:3000");
         registry.addMapping("/**")
-                .allowedOrigins("https://fe-mongod.vercel.app", "http://localhost:3000")
+                .allowedOrigins("https://fe-mongo-d.vercel.app", "http://localhost:3000")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(false);
