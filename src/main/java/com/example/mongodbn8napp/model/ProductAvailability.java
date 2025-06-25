@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProductAvailability {
 
-    private int quality; // Tên trường này ánh xạ đến "quality" trong availability object
+    private int quantity;
     private LocalDateTime dateAdd;
     private LocalDateTime dateUpdate;
 }

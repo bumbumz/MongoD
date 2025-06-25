@@ -1,10 +1,15 @@
 package com.example.mongodbn8napp.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.mongodbn8napp.dto.ProductResponseDTO;
+import com.example.mongodbn8napp.face.product.ProductFacade;
+import com.example.mongodbn8napp.global.ApiResponse;
 import com.example.mongodbn8napp.model.Product;
 import com.example.mongodbn8napp.service.product.ProductService;
 
@@ -15,77 +20,51 @@ import java.util.Optional;
 @RequestMapping("/api/products")
 public class ProductController {
 
-    @Autowired // Inject ProductService
-    private ProductService productService;
+    @Autowired
+    private ProductFacade productFacade;
 
     // --- 1. Thêm sản phẩm mới (Create) ---
     @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
-        try {
-            Product _product = productService.createProduct(product);
-            return new ResponseEntity<>(_product, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<ApiResponse<ProductResponseDTO>> createProduct(@RequestBody Product product) {
+        ApiResponse<ProductResponseDTO> response = productFacade.createProduct(product);
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    // --- 2. Lấy tất cả sản phẩm (Read All) ---
+    // --- 2. Lấy tất cả sản phẩm (Read All) với phân trang ---
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
-        try {
-            List<Product> products = productService.getAllProducts();
-            if (products.isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
-            return new ResponseEntity<>(products, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<ApiResponse> getAllProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        ApiResponse response = productFacade.getAllProducts(pageable);
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 
     // --- 3. Lấy sản phẩm theo ID (Read One) ---
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable("id") String id) {
-        Optional<Product> productData = productService.getProductById(id);
-
-        return productData.map(product -> new ResponseEntity<>(product, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<ApiResponse<ProductResponseDTO>> getProductById(@PathVariable("id") String id) {
+        ApiResponse<ProductResponseDTO> response = productFacade.getProductById(id);
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 
     // --- 4. Cập nhật sản phẩm (Update) ---
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable("id") String id, @RequestBody Product product) {
-        Product updatedProduct = productService.updateProduct(id, product);
-        if (updatedProduct != null) {
-            return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<ApiResponse<ProductResponseDTO>> updateProduct(@PathVariable("id") String id, @RequestBody Product product) {
+        ApiResponse<ProductResponseDTO> response = productFacade.updateProduct(id, product);
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 
     // --- 5. Xóa sản phẩm (Delete) ---
     @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deleteProduct(@PathVariable("id") String id) {
-        try {
-            boolean deleted = productService.deleteProduct(id);
-            if (deleted) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND); // Không tìm thấy sản phẩm để xóa
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable("id") String id) {
+        ApiResponse<Void> response = productFacade.deleteProduct(id);
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 
     // --- 6. Xóa tất cả sản phẩm (Delete All) ---
     @DeleteMapping
-    public ResponseEntity<HttpStatus> deleteAllProducts() {
-        try {
-            productService.deleteAllProducts();
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<ApiResponse<Void>> deleteAllProducts() {
+        ApiResponse<Void> response = productFacade.deleteAllProducts();
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 }

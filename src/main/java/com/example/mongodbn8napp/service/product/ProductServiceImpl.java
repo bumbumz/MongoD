@@ -1,12 +1,18 @@
 package com.example.mongodbn8napp.service.product;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
+
+import com.example.mongodbn8napp.global.exception.NotFoundException;
+import com.example.mongodbn8napp.global.ApiResponse;
+import com.example.mongodbn8napp.global.exception.InvalidException;
 import com.example.mongodbn8napp.model.Product;
 import com.example.mongodbn8napp.repository.ProductRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -16,78 +22,96 @@ public class ProductServiceImpl implements ProductService {
     private ProductRepository productRepository;
 
     @Override
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
-    }
-
-    @Override
-    public Optional<Product> getProductById(String id) {
-        return productRepository.findById(id);
-    }
-
-    @Override
     public Product createProduct(Product product) {
-        // Thiết lập thời gian tạo và cập nhật khi tạo mới
+        // Validation
+        if (product.getSku() == null || product.getSku().isBlank()) {
+            throw new InvalidException("SKU không được để trống");
+        }
+        if (product.getDescriptionInfo() == null || product.getDescriptionInfo().getName() == null || product.getDescriptionInfo().getName().isBlank()) {
+            throw new InvalidException("Tên sản phẩm không được để trống");
+        }
+        if (product.getAvailability() != null && product.getAvailability().getQuantity() < 0) {
+            throw new InvalidException("Số lượng sản phẩm không được âm");
+        }
+
         product.setDateAdd(LocalDateTime.now());
         product.setDateUpdate(LocalDateTime.now());
-        
-        // Đảm bảo các đối tượng nhúng không null trước khi truy cập
-        if (product.getDescriptionInfo() != null) {
-            product.getDescriptionInfo().setDateAdd(LocalDateTime.now());
-            // Có thể bạn cũng muốn dateUpdate cho DescriptionInfo, nhưng thường không cần thiết
-        }
         if (product.getAvailability() != null) {
             product.getAvailability().setDateAdd(LocalDateTime.now());
-            // Tương tự cho Availability
         }
-        
-        // `images` và `price` sẽ được tự động đưa vào từ request body nếu có
+        if (product.getDescriptionInfo() != null) {
+            product.getDescriptionInfo().setDateAdd(LocalDateTime.now());
+        }
         return productRepository.save(product);
     }
 
     @Override
-    public Product updateProduct(String id, Product product) {
-        Optional<Product> productData = productRepository.findById(id);
+    public ApiResponse getAllProducts(Pageable pageable) {
+        Page<Product> productPage = productRepository.findAll(pageable);
+        ApiResponse.Pagination pagination = new ApiResponse.Pagination(
+                productPage.getNumber(),
+                productPage.getSize(),
+                productPage.getTotalElements(),
+                productPage.getTotalPages()
+        );
+        return new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Lấy danh sách sản phẩm thành công",
+                productPage.getContent(),
+                pagination
+        );
+    }
 
-        if (productData.isPresent()) {
-            Product _product = productData.get();
-            _product.setSku(product.getSku());
-            _product.setVisible(product.isVisible());
-
-            // Cập nhật các trường nhúng (descriptionInfo, availability)
-            if (product.getDescriptionInfo() != null) {
-                _product.getDescriptionInfo().setName(product.getDescriptionInfo().getName());
-                _product.getDescriptionInfo().setDescription(product.getDescriptionInfo().getDescription());
-                // Không cần setDateAdd/Update cho descriptionInfo ở đây trừ khi bạn có logic riêng
-            }
-            if (product.getAvailability() != null) {
-                _product.getAvailability().setQuality(product.getAvailability().getQuality());
-                // Không cần setDateAdd/Update cho availability ở đây
-            }
-            
-            // THÊM DÒNG NÀY ĐỂ CẬP NHẬT IMAGES
-            // Có hai cách:
-            // 1. Gán thẳng: Nếu bạn muốn thay thế toàn bộ danh sách ảnh
-            _product.setImages(product.getImages()); 
-
-            // 2. Hoặc nếu bạn muốn thêm/bóc tách logic cập nhật ảnh phức tạp hơn,
-            //    ví dụ: chỉ thêm ảnh mới, xóa ảnh cũ theo ID, v.v.
-            //    Tuy nhiên, cách gán thẳng là đơn giản nhất cho CRUD cơ bản.
-
-            _product.setDateUpdate(LocalDateTime.now()); // Cập nhật thời gian cập nhật
-
-            return productRepository.save(_product);
+    @Override
+    public Optional<Product> getProductById(String id) {
+        Optional<Product> product = productRepository.findById(id);
+        if (product.isEmpty()) {
+            throw new NotFoundException("Không tìm thấy sản phẩm với ID: " + id);
         }
-        return null;
+        return product;
+    }
+
+    @Override
+    public Product updateProduct(String id, Product product) {
+        Optional<Product> existingProduct = productRepository.findById(id);
+        if (existingProduct.isEmpty()) {
+            throw new NotFoundException("Không tìm thấy sản phẩm với ID: " + id);
+        }
+        // Validation
+        if (product.getSku() == null || product.getSku().isBlank()) {
+            throw new InvalidException("SKU không được để trống");
+        }
+        if (product.getDescriptionInfo() == null || product.getDescriptionInfo().getName() == null || product.getDescriptionInfo().getName().isBlank()) {
+            throw new InvalidException("Tên sản phẩm không được để trống");
+        }
+        if (product.getAvailability() != null && product.getAvailability().getQuantity() < 0) {
+            throw new InvalidException("Số lượng sản phẩm không được âm");
+        }
+
+        Product updatedProduct = existingProduct.get();
+        updatedProduct.setSku(product.getSku());
+        updatedProduct.setVisible(product.isVisible());
+        updatedProduct.setDescriptionInfo(product.getDescriptionInfo());
+        updatedProduct.setAvailability(product.getAvailability());
+        updatedProduct.setImages(product.getImages());
+        updatedProduct.setDateUpdate(LocalDateTime.now());
+
+        if (updatedProduct.getAvailability() != null) {
+            updatedProduct.getAvailability().setDateUpdate(LocalDateTime.now());
+        }
+        if (updatedProduct.getDescriptionInfo() != null) {
+            updatedProduct.getDescriptionInfo().setDateUpdate(LocalDateTime.now());
+        }
+        return productRepository.save(updatedProduct);
     }
 
     @Override
     public boolean deleteProduct(String id) {
-        if (productRepository.existsById(id)) {
-            productRepository.deleteById(id);
-            return true;
+        if (!productRepository.existsById(id)) {
+            throw new NotFoundException("Không tìm thấy sản phẩm với ID: " + id);
         }
-        return false;
+        productRepository.deleteById(id);
+        return true;
     }
 
     @Override
