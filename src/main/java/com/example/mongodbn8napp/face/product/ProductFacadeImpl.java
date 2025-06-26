@@ -8,10 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.mongodbn8napp.dto.ProductResponseDTO;
+import com.example.mongodbn8napp.dto.request.ProductRequestDTO;
 import com.example.mongodbn8napp.global.ApiResponse;
 import com.example.mongodbn8napp.model.Product;
+import com.example.mongodbn8napp.model.ProductAvailability;
+import com.example.mongodbn8napp.model.ProductDescription;
 import com.example.mongodbn8napp.service.product.ProductService;
 
 @Component
@@ -60,8 +64,21 @@ public class ProductFacadeImpl implements ProductFacade {
     }
 
     @Override
-    public ApiResponse<ProductResponseDTO> createProduct(Product product) {
-        Product savedProduct = productService.createProduct(product);
+    public ApiResponse<ProductResponseDTO> createProduct(ProductRequestDTO productRequest, List<MultipartFile> files) {
+        Product product = new Product();
+        product.setSku(productRequest.getSku());
+        product.setVisible(productRequest.getVisible());
+
+        ProductDescription description = new ProductDescription();
+        description.setName(productRequest.getDescriptionInfo().getName());
+        description.setDescription(productRequest.getDescriptionInfo().getDescription());
+        product.setDescriptionInfo(description);
+
+        ProductAvailability availability = new ProductAvailability();
+        availability.setQuantity(productRequest.getAvailability().getQuantity());
+        product.setAvailability(availability);
+
+        Product savedProduct = productService.createProduct(product, files);
         ProductResponseDTO dto = convertToDTO(savedProduct);
         return new ApiResponse<>(
                 HttpStatus.CREATED.value(),
@@ -87,8 +104,8 @@ public class ProductFacadeImpl implements ProductFacade {
 
     @Override
     public ApiResponse<ProductResponseDTO> getProductById(String id) {
-        Optional<Product> productOptional = productService.getProductById(id); // Sẽ ném ProductNotFoundException nếu không tìm thấy
-        ProductResponseDTO dto = convertToDTO(productOptional.get());
+        Product product = productService.getProductById(id).orElseThrow();
+        ProductResponseDTO dto = convertToDTO(product);
         return new ApiResponse<>(
                 HttpStatus.OK.value(),
                 "Lấy sản phẩm thành công",
@@ -98,8 +115,21 @@ public class ProductFacadeImpl implements ProductFacade {
     }
 
     @Override
-    public ApiResponse<ProductResponseDTO> updateProduct(String id, Product product) {
-        Product updatedProduct = productService.updateProduct(id, product); // Sẽ ném ProductNotFoundException nếu không tìm thấy
+    public ApiResponse<ProductResponseDTO> updateProduct(String id, ProductRequestDTO productRequest) {
+        Product product = new Product();
+        product.setSku(productRequest.getSku());
+        product.setVisible(productRequest.getVisible());
+
+        ProductDescription description = new ProductDescription();
+        description.setName(productRequest.getDescriptionInfo().getName());
+        description.setDescription(productRequest.getDescriptionInfo().getDescription());
+        product.setDescriptionInfo(description);
+
+        ProductAvailability availability = new ProductAvailability();
+        availability.setQuantity(productRequest.getAvailability().getQuantity());
+        product.setAvailability(availability);
+
+        Product updatedProduct = productService.updateProduct(id, product);
         ProductResponseDTO dto = convertToDTO(updatedProduct);
         return new ApiResponse<>(
                 HttpStatus.OK.value(),
@@ -111,7 +141,7 @@ public class ProductFacadeImpl implements ProductFacade {
 
     @Override
     public ApiResponse<Void> deleteProduct(String id) {
-        productService.deleteProduct(id); // Sẽ ném NotFoundException nếu không tìm thấy
+        productService.deleteProduct(id);
         return new ApiResponse<>(
                 HttpStatus.NO_CONTENT.value(),
                 "Xóa sản phẩm thành công",

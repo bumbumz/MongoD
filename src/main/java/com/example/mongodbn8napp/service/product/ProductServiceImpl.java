@@ -1,18 +1,23 @@
 package com.example.mongodbn8napp.service.product;
 
-
 import com.example.mongodbn8napp.global.exception.NotFoundException;
 import com.example.mongodbn8napp.global.ApiResponse;
 import com.example.mongodbn8napp.global.exception.InvalidException;
 import com.example.mongodbn8napp.model.Product;
+import com.example.mongodbn8napp.model.ProductImage;
 import com.example.mongodbn8napp.repository.ProductRepository;
+import com.example.mongodbn8napp.service.image.ImageUploadService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -21,26 +26,52 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private ImageUploadService imageUploadService;
+
     @Override
-    public Product createProduct(Product product) {
+    public Product createProduct(Product product, List<MultipartFile> files) {
         // Validation
         if (product.getSku() == null || product.getSku().isBlank()) {
             throw new InvalidException("SKU không được để trống");
         }
-        if (product.getDescriptionInfo() == null || product.getDescriptionInfo().getName() == null || product.getDescriptionInfo().getName().isBlank()) {
+        if (product.getDescriptionInfo() == null || product.getDescriptionInfo().getName() == null
+                || product.getDescriptionInfo().getName().isBlank()) {
             throw new InvalidException("Tên sản phẩm không được để trống");
         }
         if (product.getAvailability() != null && product.getAvailability().getQuantity() < 0) {
             throw new InvalidException("Số lượng sản phẩm không được âm");
         }
 
+        // Upload images to ImgBB
+        List<ProductImage> images = new ArrayList<>();
+        if (files != null && !files.isEmpty()) {
+            for (int i = 0; i < files.size(); i++) {
+                MultipartFile file = files.get(i);
+                if (!file.isEmpty()) {
+                    String imageUrl = imageUploadService.uploadImage(file);
+                    ProductImage productImage = new ProductImage();
+                    productImage.setUrl(imageUrl);
+                    productImage.setAltText("Product image " + (i + 1));
+                    productImage.setOrder(i);
+                    productImage.setThumbnail(i == 0); // Ảnh đầu tiên là thumbnail
+                    images.add(productImage);
+                }
+            }
+        } else {
+            throw new InvalidException("Cần ít nhất một ảnh cho sản phẩmm");
+        }
+
+        product.setImages(images);
         product.setDateAdd(LocalDateTime.now());
         product.setDateUpdate(LocalDateTime.now());
         if (product.getAvailability() != null) {
             product.getAvailability().setDateAdd(LocalDateTime.now());
+            product.getAvailability().setDateUpdate(LocalDateTime.now());
         }
         if (product.getDescriptionInfo() != null) {
             product.getDescriptionInfo().setDateAdd(LocalDateTime.now());
+            product.getDescriptionInfo().setDateUpdate(LocalDateTime.now());
         }
         return productRepository.save(product);
     }
@@ -52,14 +83,12 @@ public class ProductServiceImpl implements ProductService {
                 productPage.getNumber(),
                 productPage.getSize(),
                 productPage.getTotalElements(),
-                productPage.getTotalPages()
-        );
+                productPage.getTotalPages());
         return new ApiResponse<>(
                 HttpStatus.OK.value(),
                 "Lấy danh sách sản phẩm thành công",
                 productPage.getContent(),
-                pagination
-        );
+                pagination);
     }
 
     @Override
@@ -81,7 +110,8 @@ public class ProductServiceImpl implements ProductService {
         if (product.getSku() == null || product.getSku().isBlank()) {
             throw new InvalidException("SKU không được để trống");
         }
-        if (product.getDescriptionInfo() == null || product.getDescriptionInfo().getName() == null || product.getDescriptionInfo().getName().isBlank()) {
+        if (product.getDescriptionInfo() == null || product.getDescriptionInfo().getName() == null
+                || product.getDescriptionInfo().getName().isBlank()) {
             throw new InvalidException("Tên sản phẩm không được để trống");
         }
         if (product.getAvailability() != null && product.getAvailability().getQuantity() < 0) {

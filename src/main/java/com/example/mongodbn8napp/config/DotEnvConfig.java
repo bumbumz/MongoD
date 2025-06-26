@@ -17,7 +17,6 @@ public class DotEnvConfig {
                 .directory("./") // Tìm .env ở thư mục gốc dự án (cục bộ)
                 .ignoreIfMissing() // Bỏ qua nếu .env không tồn tại (cho Render)
                 .load();
-        logger.info("Loaded IMGBB_API_KEY: {}", dotenv.get("IMGBB_API_KEY", System.getenv("IMGBB_API_KEY")));
         return dotenv;
     }
 }
