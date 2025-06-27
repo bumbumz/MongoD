@@ -4,6 +4,8 @@ import com.example.mongodbn8napp.global.exception.NotFoundException;
 import com.example.mongodbn8napp.global.ApiResponse;
 import com.example.mongodbn8napp.global.exception.InvalidException;
 import com.example.mongodbn8napp.model.Product;
+import com.example.mongodbn8napp.model.ProductAvailability;
+import com.example.mongodbn8napp.model.ProductDescription;
 import com.example.mongodbn8napp.model.ProductImage;
 import com.example.mongodbn8napp.repository.ProductRepository;
 import com.example.mongodbn8napp.service.image.ImageUploadService;
@@ -102,37 +104,68 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product updateProduct(String id, Product product) {
-        Optional<Product> existingProduct = productRepository.findById(id);
-        if (existingProduct.isEmpty()) {
+        Optional<Product> existingProductOpt = productRepository.findById(id);
+        if (existingProductOpt.isEmpty()) {
             throw new NotFoundException("Không tìm thấy sản phẩm với ID: " + id);
         }
-        // Validation
-        if (product.getSku() == null || product.getSku().isBlank()) {
-            throw new InvalidException("SKU không được để trống");
-        }
-        if (product.getDescriptionInfo() == null || product.getDescriptionInfo().getName() == null
-                || product.getDescriptionInfo().getName().isBlank()) {
-            throw new InvalidException("Tên sản phẩm không được để trống");
-        }
-        if (product.getAvailability() != null && product.getAvailability().getQuantity() < 0) {
-            throw new InvalidException("Số lượng sản phẩm không được âm");
+
+        Product existingProduct = existingProductOpt.get();
+
+        // Validation chỉ áp dụng cho các trường được cung cấp
+        if (product.getSku() != null) {
+            if (product.getSku().isBlank()) {
+                throw new InvalidException("SKU không được để trống");
+            }
+            existingProduct.setSku(product.getSku());
         }
 
-        Product updatedProduct = existingProduct.get();
-        updatedProduct.setSku(product.getSku());
-        updatedProduct.setVisible(product.isVisible());
-        updatedProduct.setDescriptionInfo(product.getDescriptionInfo());
-        updatedProduct.setAvailability(product.getAvailability());
-        updatedProduct.setImages(product.getImages());
-        updatedProduct.setDateUpdate(LocalDateTime.now());
+        if (product.getVisible() != null) {
+            existingProduct.setVisible(product.getVisible());
+        }
 
-        if (updatedProduct.getAvailability() != null) {
-            updatedProduct.getAvailability().setDateUpdate(LocalDateTime.now());
+        if (product.getDescriptionInfo() != null) {
+            ProductDescription description = existingProduct.getDescriptionInfo() != null
+                    ? existingProduct.getDescriptionInfo()
+                    : new ProductDescription();
+
+            if (product.getDescriptionInfo().getName() != null) {
+                if (product.getDescriptionInfo().getName().isBlank()) {
+                    throw new InvalidException("Tên sản phẩm không được để trống");
+                }
+                description.setName(product.getDescriptionInfo().getName());
+            }
+
+            if (product.getDescriptionInfo().getDescription() != null) {
+                description.setDescription(product.getDescriptionInfo().getDescription());
+            }
+
+            existingProduct.setDescriptionInfo(description);
         }
-        if (updatedProduct.getDescriptionInfo() != null) {
-            updatedProduct.getDescriptionInfo().setDateUpdate(LocalDateTime.now());
+
+        if (product.getAvailability() != null && product.getAvailability().getQuantity() != null) {
+            if (product.getAvailability().getQuantity() < 0) {
+                throw new InvalidException("Số lượng sản phẩm không được âm");
+            }
+            ProductAvailability availability = existingProduct.getAvailability() != null
+                    ? existingProduct.getAvailability()
+                    : new ProductAvailability();
+            availability.setQuantity(product.getAvailability().getQuantity());
+            existingProduct.setAvailability(availability);
         }
-        return productRepository.save(updatedProduct);
+
+        if (product.getImages() != null) {
+            existingProduct.setImages(product.getImages());
+        }
+
+        existingProduct.setDateUpdate(LocalDateTime.now());
+        if (existingProduct.getAvailability() != null) {
+            existingProduct.getAvailability().setDateUpdate(LocalDateTime.now());
+        }
+        if (existingProduct.getDescriptionInfo() != null) {
+            existingProduct.getDescriptionInfo().setDateUpdate(LocalDateTime.now());
+        }
+
+        return productRepository.save(existingProduct);
     }
 
     @Override

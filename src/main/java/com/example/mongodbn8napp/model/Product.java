@@ -20,7 +20,7 @@ public class Product {
     private String id;
 
     private String sku;
-    private boolean visible; // 'boolean' cho 'visible'
+    private Boolean visible; // 'boolean' cho 'visible'
     private LocalDateTime dateAdd; // Sử dụng LocalDateTime cho ngày tạo
     private LocalDateTime dateUpdate; // Sử dụng LocalDateTime cho ngày cập nhật
 

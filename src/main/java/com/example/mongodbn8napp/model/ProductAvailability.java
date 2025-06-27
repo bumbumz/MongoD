@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProductAvailability {
 
-    private int quantity;
+    private Integer quantity;
     private LocalDateTime dateAdd;
     private LocalDateTime dateUpdate;
 }

@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.mongodbn8napp.dto.ProductResponseDTO;
 import com.example.mongodbn8napp.dto.request.ProductRequestDTO;
+import com.example.mongodbn8napp.dto.request.ProductUpdateDTO;
 import com.example.mongodbn8napp.global.ApiResponse;
 import com.example.mongodbn8napp.model.Product;
 import com.example.mongodbn8napp.model.ProductAvailability;
@@ -28,7 +29,7 @@ public class ProductFacadeImpl implements ProductFacade {
         ProductResponseDTO dto = new ProductResponseDTO();
         dto.setId(product.getId());
         dto.setSku(product.getSku());
-        dto.setVisible(product.isVisible());
+        dto.setVisible(product.getVisible());
         dto.setDateAdd(product.getDateAdd());
         dto.setDateUpdate(product.getDateUpdate());
 
@@ -115,18 +116,45 @@ public class ProductFacadeImpl implements ProductFacade {
     }
 
     @Override
-    public ApiResponse<ProductResponseDTO> updateProduct(String id, ProductRequestDTO productRequest) {
-        Product product = new Product();
-        product.setSku(productRequest.getSku());
-        product.setVisible(productRequest.getVisible());
+    public ApiResponse<ProductResponseDTO> updateProduct(String id, ProductUpdateDTO productRequest) {
+        Product existingProduct = productService.getProductById(id).orElseThrow();
 
-        ProductDescription description = new ProductDescription();
-        description.setName(productRequest.getDescriptionInfo().getName());
-        description.setDescription(productRequest.getDescriptionInfo().getDescription());
+        Product product = new Product();
+        product.setId(id);
+        product.setImages(existingProduct.getImages()); // Giữ nguyên images
+
+        // Cập nhật chỉ các trường được cung cấp
+        if (productRequest.getSku() != null) {
+            product.setSku(productRequest.getSku());
+        } else {
+            product.setSku(existingProduct.getSku());
+        }
+
+        if (productRequest.getVisible() != null) {
+            product.setVisible(productRequest.getVisible());
+        } else {
+            product.setVisible(existingProduct.getVisible());
+        }
+
+        ProductDescription description = existingProduct.getDescriptionInfo() != null
+                ? existingProduct.getDescriptionInfo()
+                : new ProductDescription();
+        if (productRequest.getDescriptionInfo() != null) {
+            if (productRequest.getDescriptionInfo().getName() != null) {
+                description.setName(productRequest.getDescriptionInfo().getName());
+            }
+            if (productRequest.getDescriptionInfo().getDescription() != null) {
+                description.setDescription(productRequest.getDescriptionInfo().getDescription());
+            }
+        }
         product.setDescriptionInfo(description);
 
-        ProductAvailability availability = new ProductAvailability();
-        availability.setQuantity(productRequest.getAvailability().getQuantity());
+        ProductAvailability availability = existingProduct.getAvailability() != null
+                ? existingProduct.getAvailability()
+                : new ProductAvailability();
+        if (productRequest.getAvailability() != null && productRequest.getAvailability().getQuantity() != null) {
+            availability.setQuantity(productRequest.getAvailability().getQuantity());
+        }
         product.setAvailability(availability);
 
         Product updatedProduct = productService.updateProduct(id, product);

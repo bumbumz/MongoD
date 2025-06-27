@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.mongodbn8napp.dto.ProductResponseDTO;
 import com.example.mongodbn8napp.dto.request.ProductRequestDTO;
+import com.example.mongodbn8napp.dto.request.ProductUpdateDTO;
 import com.example.mongodbn8napp.face.product.ProductFacade;
 import com.example.mongodbn8napp.global.ApiResponse;
 import com.example.mongodbn8napp.model.Product;
@@ -64,7 +65,7 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResponseDTO>> updateProduct(
             @PathVariable("id") String id,
-            @Valid @RequestBody ProductRequestDTO productRequest) {
+            @Valid @RequestBody ProductUpdateDTO productRequest) {
         ApiResponse<ProductResponseDTO> response = productFacade.updateProduct(id, productRequest);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
