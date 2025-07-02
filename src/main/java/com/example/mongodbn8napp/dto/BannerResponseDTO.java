@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class BannerResponseDTO {
     private String id;
     private String name;
+    
     private String thumbnailUrl;
     private String link;
     private String description;

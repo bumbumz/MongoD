@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 public class ProductUpdateDTO {
     private String sku;
     private Boolean visible;
+    private String categoryId;
+    private Double price; // Thêm trường giá
+    private Double discountPrice; // Thêm trường giá sau giảm
     private ProductDescriptionDTO descriptionInfo;
     private ProductAvailabilityDTO availability;
 

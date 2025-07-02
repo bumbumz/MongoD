@@ -7,6 +7,8 @@ import com.example.mongodbn8napp.model.Product;
 import com.example.mongodbn8napp.model.ProductAvailability;
 import com.example.mongodbn8napp.model.ProductDescription;
 import com.example.mongodbn8napp.model.ProductImage;
+import com.example.mongodbn8napp.model.Cate.Category;
+import com.example.mongodbn8napp.repository.CategoryRepository;
 import com.example.mongodbn8napp.repository.ProductRepository;
 import com.example.mongodbn8napp.service.image.ImageUploadService;
 
@@ -27,7 +29,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private ProductRepository productRepository;
-
+    @Autowired
+    private CategoryRepository categoryRepository;
     @Autowired
     private ImageUploadService imageUploadService;
 
@@ -44,6 +47,23 @@ public class ProductServiceImpl implements ProductService {
         if (product.getAvailability() != null && product.getAvailability().getQuantity() < 0) {
             throw new InvalidException("Số lượng sản phẩm không được âm");
         }
+        if (product.getPrice() == null || product.getPrice() <= 0) {
+            throw new InvalidException("Giá sản phẩm phải lớn hơn 0");
+        }
+        if (product.getDiscountPrice() != null && product.getDiscountPrice() <= 0) {
+            throw new InvalidException("Giá giảm không được nhỏ hơn hoặc bằng 0");
+        }
+        if (product.getDiscountPrice() != null && product.getDiscountPrice() >= product.getPrice()) {
+            throw new InvalidException("Giá giảm phải nhỏ hơn giá gốc");
+        }
+        if (product.getCategoryId() == null || product.getCategoryId().isBlank()) {
+            throw new InvalidException("ID danh mục không được để trống");
+        }
+        Optional<Category> categoryOpt = categoryRepository.findById(product.getCategoryId());
+        if (categoryOpt.isEmpty()) {
+            throw new NotFoundException("Không tìm thấy danh mục với ID: " + product.getCategoryId());
+        }
+        product.setCategoryName(categoryOpt.get().getName());
 
         // Upload images to ImgBB
         List<ProductImage> images = new ArrayList<>();
@@ -121,6 +141,38 @@ public class ProductServiceImpl implements ProductService {
 
         if (product.getVisible() != null) {
             existingProduct.setVisible(product.getVisible());
+        }
+
+        if (product.getCategoryId() != null) {
+            if (product.getCategoryId().isBlank()) {
+                throw new InvalidException("ID danh mục không được để trống");
+            }
+            Optional<Category> categoryOpt = categoryRepository.findById(product.getCategoryId());
+            if (categoryOpt.isEmpty()) {
+                throw new NotFoundException("Không tìm thấy danh mục với ID: " + product.getCategoryId());
+            }
+            existingProduct.setCategoryId(product.getCategoryId());
+            existingProduct.setCategoryName(categoryOpt.get().getName());
+        }
+        if (product.getPrice() != null) {
+            if (product.getPrice() <= 0) {
+                throw new InvalidException("Giá sản phẩm phải lớn hơn 0");
+            }
+            existingProduct.setPrice(product.getPrice());
+        }
+        if (product.getDiscountPrice() != null) {
+            if (product.getDiscountPrice() <= 0) {
+                throw new InvalidException("Giá giảm không được nhỏ hơn hoặc bằng 0");
+            }
+            if (product.getPrice() != null && product.getDiscountPrice() >= product.getPrice()) {
+                throw new InvalidException("Giá giảm phải nhỏ hơn giá gốc");
+            } else if (product.getPrice() == null && product.getDiscountPrice() >= existingProduct.getPrice()) {
+                throw new InvalidException("Giá giảm phải nhỏ hơn giá gốc");
+            }
+            existingProduct.setDiscountPrice(product.getDiscountPrice());
+        } else if (product.getPrice() != null) {
+            // Nếu cập nhật giá gốc mà không cung cấp giá giảm, xóa giá giảm
+            existingProduct.setDiscountPrice(null);
         }
 
         if (product.getDescriptionInfo() != null) {

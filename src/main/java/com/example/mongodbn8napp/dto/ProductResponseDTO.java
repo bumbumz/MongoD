@@ -14,8 +14,12 @@ public class ProductResponseDTO {
     private String id;
     private String sku;
     private boolean visible;
+    private String categoryId; // Thêm trường categoryId
+    private String categoryName; // Thêm trường categoryName
     private LocalDateTime dateAdd;
     private LocalDateTime dateUpdate;
+    private Double price; // Thêm trường giá
+    private Double discountPrice; // Giá sau giảm, không bắt buộc
     private ProductDescriptionDTO descriptionInfo;
     private ProductAvailabilityDTO availability;
     private List<ProductImageDTO> images;

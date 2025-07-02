@@ -14,12 +14,17 @@ public class ProductRequestDTO {
 
     @NotNull(message = "Trạng thái hiển thị không được để trống")
     private Boolean visible;
+    private Double price; // Thêm trường giá
+
+    private Double discountPrice; // Giá sau giảm, không bắt buộc
 
     @NotNull(message = "Thông tin mô tả không được để trống")
     private ProductDescriptionDTO descriptionInfo;
 
     @NotNull(message = "Thông tin tồn kho không được để trống")
     private ProductAvailabilityDTO availability;
+    @NotBlank(message = "ID danh mục không được để trống")
+    private String categoryId; 
 
     @Data
     @AllArgsConstructor

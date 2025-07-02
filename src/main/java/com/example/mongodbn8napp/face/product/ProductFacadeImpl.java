@@ -30,6 +30,10 @@ public class ProductFacadeImpl implements ProductFacade {
         dto.setId(product.getId());
         dto.setSku(product.getSku());
         dto.setVisible(product.getVisible());
+        dto.setCategoryId(product.getCategoryId()); // Thêm
+        dto.setCategoryName(product.getCategoryName()); // Thêm
+        dto.setPrice(product.getPrice()); // Thêm
+        dto.setDiscountPrice(product.getDiscountPrice()); // Thêm
         dto.setDateAdd(product.getDateAdd());
         dto.setDateUpdate(product.getDateUpdate());
 
@@ -38,16 +42,14 @@ public class ProductFacadeImpl implements ProductFacade {
                 product.getDescriptionInfo().getName(),
                 product.getDescriptionInfo().getDescription(),
                 product.getDescriptionInfo().getDateAdd(),
-                product.getDescriptionInfo().getDateUpdate()
-        );
+                product.getDescriptionInfo().getDateUpdate());
         dto.setDescriptionInfo(descriptionDTO);
 
         // Chuyển đổi availability
         ProductResponseDTO.ProductAvailabilityDTO availabilityDTO = new ProductResponseDTO.ProductAvailabilityDTO(
                 product.getAvailability().getQuantity(),
                 product.getAvailability().getDateAdd(),
-                product.getAvailability().getDateUpdate()
-        );
+                product.getAvailability().getDateUpdate());
         dto.setAvailability(availabilityDTO);
 
         // Chuyển đổi images
@@ -56,8 +58,7 @@ public class ProductFacadeImpl implements ProductFacade {
                         image.getUrl(),
                         image.getAltText(),
                         image.getOrder(),
-                        image.isThumbnail()
-                ))
+                        image.isThumbnail()))
                 .collect(Collectors.toList());
         dto.setImages(imageDTOs);
 
@@ -69,7 +70,9 @@ public class ProductFacadeImpl implements ProductFacade {
         Product product = new Product();
         product.setSku(productRequest.getSku());
         product.setVisible(productRequest.getVisible());
-
+        product.setCategoryId(productRequest.getCategoryId());
+        product.setPrice(productRequest.getPrice()); // Thêm
+        product.setDiscountPrice(productRequest.getDiscountPrice()); // Thêm
         ProductDescription description = new ProductDescription();
         description.setName(productRequest.getDescriptionInfo().getName());
         description.setDescription(productRequest.getDescriptionInfo().getDescription());
@@ -85,8 +88,7 @@ public class ProductFacadeImpl implements ProductFacade {
                 HttpStatus.CREATED.value(),
                 "Tạo sản phẩm thành công",
                 dto,
-                null
-        );
+                null);
     }
 
     @Override
@@ -99,8 +101,7 @@ public class ProductFacadeImpl implements ProductFacade {
                 serviceResponse.getStatus(),
                 serviceResponse.getMessage(),
                 dtos,
-                serviceResponse.getPagination()
-        );
+                serviceResponse.getPagination());
     }
 
     @Override
@@ -111,8 +112,7 @@ public class ProductFacadeImpl implements ProductFacade {
                 HttpStatus.OK.value(),
                 "Lấy sản phẩm thành công",
                 dto,
-                null
-        );
+                null);
     }
 
     @Override
@@ -134,6 +134,22 @@ public class ProductFacadeImpl implements ProductFacade {
             product.setVisible(productRequest.getVisible());
         } else {
             product.setVisible(existingProduct.getVisible());
+        }
+        if (productRequest.getCategoryId() != null) {
+            product.setCategoryId(productRequest.getCategoryId()); // Thêm
+        } else {
+            product.setCategoryId(existingProduct.getCategoryId());
+        }
+        if (productRequest.getPrice() != null) {
+            product.setPrice(productRequest.getPrice()); // Thêm
+        } else {
+            product.setPrice(existingProduct.getPrice());
+        }
+
+        if (productRequest.getDiscountPrice() != null) {
+            product.setDiscountPrice(productRequest.getDiscountPrice()); // Thêm
+        } else {
+            product.setDiscountPrice(existingProduct.getDiscountPrice());
         }
 
         ProductDescription description = existingProduct.getDescriptionInfo() != null
@@ -163,8 +179,7 @@ public class ProductFacadeImpl implements ProductFacade {
                 HttpStatus.OK.value(),
                 "Cập nhật sản phẩm thành công",
                 dto,
-                null
-        );
+                null);
     }
 
     @Override
@@ -174,8 +189,7 @@ public class ProductFacadeImpl implements ProductFacade {
                 HttpStatus.NO_CONTENT.value(),
                 "Xóa sản phẩm thành công",
                 null,
-                null
-        );
+                null);
     }
 
     @Override
@@ -185,7 +199,6 @@ public class ProductFacadeImpl implements ProductFacade {
                 HttpStatus.NO_CONTENT.value(),
                 "Xóa tất cả sản phẩm thành công",
                 null,
-                null
-        );
+                null);
     }
 }

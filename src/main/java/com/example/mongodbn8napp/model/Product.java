@@ -23,10 +23,15 @@ public class Product {
     private Boolean visible; // 'boolean' cho 'visible'
     private LocalDateTime dateAdd; // Sử dụng LocalDateTime cho ngày tạo
     private LocalDateTime dateUpdate; // Sử dụng LocalDateTime cho ngày cập nhật
-
+    // Thêm hai trường mới
+    private String categoryId; // ID của danh mục
+    private String categoryName; // Tên của danh mục để lưu trữ trực tiếp
     // Nhúng ProductDescription vào Product
     private ProductDescription descriptionInfo; // Tên trường trong Java là descriptionInfo
 
+    private Double price; // Thêm trường giá gốc
+    private Double discountPrice; // Thêm trường giá sau giảm, có thể null
+    
     // Nhúng ProductAvailability vào Product
     private ProductAvailability availability; // Tên trường trong Java là availability
 
