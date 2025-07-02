@@ -33,7 +33,7 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<ProductResponseDTO>> createProduct(
-            @Valid @ModelAttribute ProductRequestDTO productRequest,
+            @Valid @RequestBody ProductRequestDTO productRequest,
             @RequestParam(value = "images", required = false) List<MultipartFile> files) {
         logger.debug("Received productRequest: {}", productRequest);
         logger.debug("Received files: {}", files != null ? files.size() : "null");

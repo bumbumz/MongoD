@@ -1,9 +1,12 @@
 package com.example.mongodbn8napp.dto.request;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+
 
 @Data
 @AllArgsConstructor
@@ -14,17 +17,19 @@ public class ProductRequestDTO {
 
     @NotNull(message = "Trạng thái hiển thị không được để trống")
     private Boolean visible;
-    private Double price; // Thêm trường giá
 
-    private Double discountPrice; // Giá sau giảm, không bắt buộc
+    private String categoryId; // Bỏ @NotBlank
+
+    @NotNull(message = "Giá sản phẩm không được để trống")
+    private Double price;
+
+    private Double discountPrice; // Không bắt buộc
 
     @NotNull(message = "Thông tin mô tả không được để trống")
     private ProductDescriptionDTO descriptionInfo;
 
     @NotNull(message = "Thông tin tồn kho không được để trống")
     private ProductAvailabilityDTO availability;
-    @NotBlank(message = "ID danh mục không được để trống")
-    private String categoryId; 
 
     @Data
     @AllArgsConstructor
@@ -32,9 +37,7 @@ public class ProductRequestDTO {
     public static class ProductDescriptionDTO {
         @NotBlank(message = "Tên sản phẩm không được để trống")
         private String name;
-
-        @NotBlank(message = "Mô tả không được để trống")
-        private String description;
+        private String description; // Không bắt buộc
     }
 
     @Data

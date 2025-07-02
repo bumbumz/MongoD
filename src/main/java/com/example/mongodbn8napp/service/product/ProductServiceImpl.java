@@ -56,16 +56,19 @@ public class ProductServiceImpl implements ProductService {
         if (product.getDiscountPrice() != null && product.getDiscountPrice() >= product.getPrice()) {
             throw new InvalidException("Giá giảm phải nhỏ hơn giá gốc");
         }
-        if (product.getCategoryId() == null || product.getCategoryId().isBlank()) {
-            throw new InvalidException("ID danh mục không được để trống");
+        // Kiểm tra categoryId nếu có
+        if (product.getCategoryId() != null && !product.getCategoryId().isBlank()) {
+            Optional<Category> categoryOpt = categoryRepository.findById(product.getCategoryId());
+            if (categoryOpt.isEmpty()) {
+                throw new NotFoundException("Không tìm thấy danh mục với ID: " + product.getCategoryId());
+            }
+            product.setCategoryName(categoryOpt.get().getName());
+        } else {
+            product.setCategoryId(null);
+            product.setCategoryName(null);
         }
-        Optional<Category> categoryOpt = categoryRepository.findById(product.getCategoryId());
-        if (categoryOpt.isEmpty()) {
-            throw new NotFoundException("Không tìm thấy danh mục với ID: " + product.getCategoryId());
-        }
-        product.setCategoryName(categoryOpt.get().getName());
 
-        // Upload images to ImgBB
+        // Upload images to ImgBB if provided
         List<ProductImage> images = new ArrayList<>();
         if (files != null && !files.isEmpty()) {
             for (int i = 0; i < files.size(); i++) {
@@ -76,15 +79,12 @@ public class ProductServiceImpl implements ProductService {
                     productImage.setUrl(imageUrl);
                     productImage.setAltText("Product image " + (i + 1));
                     productImage.setOrder(i);
-                    productImage.setThumbnail(i == 0); // Ảnh đầu tiên là thumbnail
+                    productImage.setThumbnail(i == 0);
                     images.add(productImage);
                 }
             }
-        } else {
-            throw new InvalidException("Cần ít nhất một ảnh cho sản phẩmm");
         }
-
-        product.setImages(images);
+        product.setImages(images); // Có thể rỗng
         product.setDateAdd(LocalDateTime.now());
         product.setDateUpdate(LocalDateTime.now());
         if (product.getAvailability() != null) {
