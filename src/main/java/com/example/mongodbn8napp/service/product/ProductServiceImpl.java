@@ -40,6 +40,10 @@ public class ProductServiceImpl implements ProductService {
         if (product.getSku() == null || product.getSku().isBlank()) {
             throw new InvalidException("SKU không được để trống");
         }
+        // Kiểm tra SKU trùng lặp
+        if (productRepository.existsBySku(product.getSku())) {
+            throw new InvalidException("SKU '" + product.getSku() + "' đã tồn tại");
+        }
         if (product.getDescriptionInfo() == null || product.getDescriptionInfo().getName() == null
                 || product.getDescriptionInfo().getName().isBlank()) {
             throw new InvalidException("Tên sản phẩm không được để trống");

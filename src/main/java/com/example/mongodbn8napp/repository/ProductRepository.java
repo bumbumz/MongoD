@@ -10,4 +10,5 @@ import com.example.mongodbn8napp.model.Product;
 public interface ProductRepository extends MongoRepository<Product, String> {
     // Các phương thức CRUD cơ bản vẫn hoạt động trên Product document
     // findById, findAll, save, deleteById, v.v.
+     boolean existsBySku(String sku);
 }
