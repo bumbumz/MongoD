@@ -24,7 +24,7 @@ public class Product {
     private LocalDateTime dateAdd; // Sử dụng LocalDateTime cho ngày tạo
     private LocalDateTime dateUpdate; // Sử dụng LocalDateTime cho ngày cập nhật
     // Thêm hai trường mới
-    private String categoryId; // ID của danh mục
+    private String categoryId; // ID của danh mục n
     private String categoryName; // Tên của danh mục để lưu trữ trực tiếp
     // Nhúng ProductDescription vào Product
     private ProductDescription descriptionInfo; // Tên trường trong Java là descriptionInfo
