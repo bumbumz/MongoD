@@ -91,6 +91,7 @@ public class ProductServiceImpl implements ProductService {
         product.setImages(images); // Có thể rỗng
         product.setDateAdd(LocalDateTime.now());
         product.setDateUpdate(LocalDateTime.now());
+        product.setDeleted(false);
         if (product.getAvailability() != null) {
             product.getAvailability().setDateAdd(LocalDateTime.now());
             product.getAvailability().setDateUpdate(LocalDateTime.now());
@@ -104,7 +105,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ApiResponse getAllProducts(Pageable pageable) {
-        Page<Product> productPage = productRepository.findAll(pageable);
+        Page<Product> productPage = productRepository.findAllNotDeleted(pageable);
         ApiResponse.Pagination pagination = new ApiResponse.Pagination(
                 productPage.getNumber(),
                 productPage.getSize(),
@@ -119,7 +120,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Optional<Product> getProductById(String id) {
-        Optional<Product> product = productRepository.findById(id);
+        // Sử dụng findByIdNotDeleted để chỉ lấy sản phẩm chưa xóa
+        Optional<Product> product = productRepository.findByIdNotDeleted(id);
         if (product.isEmpty()) {
             throw new NotFoundException("Không tìm thấy sản phẩm với ID: " + id);
         }
@@ -226,15 +228,34 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public boolean deleteProduct(String id) {
-        if (!productRepository.existsById(id)) {
+        Optional<Product> productOpt = productRepository.findByIdNotDeleted(id);
+        if (productOpt.isEmpty()) {
             throw new NotFoundException("Không tìm thấy sản phẩm với ID: " + id);
         }
-        productRepository.deleteById(id);
+        Product product = productOpt.get();
+        product.setDeleted(true); // Đánh dấu xóa mềm
+        product.setDateUpdate(LocalDateTime.now());
+        productRepository.save(product);
         return true;
     }
 
     @Override
     public void deleteAllProducts() {
         productRepository.deleteAll();
+    }
+
+    @Override
+    public ApiResponse getDeletedProducts(Pageable pageable) {
+        Page<Product> productPage = productRepository.findAllByDeletedTrue(pageable);
+        ApiResponse.Pagination pagination = new ApiResponse.Pagination(
+                productPage.getNumber(),
+                productPage.getSize(),
+                productPage.getTotalElements(),
+                productPage.getTotalPages());
+        return new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Lấy danh sách sản phẩm đã xóa thành công",
+                productPage.getContent(),
+                pagination);
     }
 }

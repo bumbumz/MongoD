@@ -81,4 +81,13 @@ public class ProductController {
         ApiResponse<Void> response = productFacade.deleteAllProducts();
         return ResponseEntity.status(response.getStatus()).body(response);
     }
+
+    @GetMapping("/deleted")
+    public ResponseEntity<ApiResponse> getDeletedProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        ApiResponse response = productFacade.getDeletedProducts(pageable);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
 }

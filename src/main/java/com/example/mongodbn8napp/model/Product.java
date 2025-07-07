@@ -36,4 +36,5 @@ public class Product {
     private ProductAvailability availability; // Tên trường trong Java là availability
 
     private List<ProductImage> images;
+    private Boolean deleted = false; // Mặc định là false (chưa xóa)
 }

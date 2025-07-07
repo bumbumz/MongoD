@@ -14,4 +14,5 @@ public interface BannerFacade {
     ApiResponse<BannerResponseDTO> updateBanner(String id, Banner banner, MultipartFile thumbnail);
     ApiResponse<Void> deleteBanner(String id);
     ApiResponse<Void> deleteAllBanners();
+    
 }

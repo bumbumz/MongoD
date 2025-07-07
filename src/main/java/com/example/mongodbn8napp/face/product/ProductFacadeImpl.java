@@ -36,6 +36,7 @@ public class ProductFacadeImpl implements ProductFacade {
         dto.setDiscountPrice(product.getDiscountPrice()); // Thêm
         dto.setDateAdd(product.getDateAdd());
         dto.setDateUpdate(product.getDateUpdate());
+        dto.setDeleted(product.getDeleted());
 
         // Chuyển đổi descriptionInfo
         ProductResponseDTO.ProductDescriptionDTO descriptionDTO = new ProductResponseDTO.ProductDescriptionDTO(
@@ -201,4 +202,17 @@ public class ProductFacadeImpl implements ProductFacade {
                 null,
                 null);
     }
+
+    @Override
+public ApiResponse getDeletedProducts(Pageable pageable) {
+    ApiResponse<List<Product>> serviceResponse = productService.getDeletedProducts(pageable);
+    List<ProductResponseDTO> dtos = serviceResponse.getData().stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+    return new ApiResponse<>(
+            serviceResponse.getStatus(),
+            "Lấy danh sách sản phẩm đã xóa thành công",
+            dtos,
+            serviceResponse.getPagination());
+}
 }

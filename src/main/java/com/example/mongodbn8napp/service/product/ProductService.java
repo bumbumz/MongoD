@@ -16,4 +16,5 @@ public interface ProductService {
     Product updateProduct(String id, Product product);
     boolean deleteProduct(String id);
     void deleteAllProducts();
+    ApiResponse getDeletedProducts(Pageable pageable);
 }

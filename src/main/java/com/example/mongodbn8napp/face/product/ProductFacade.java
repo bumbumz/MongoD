@@ -19,4 +19,5 @@ public interface ProductFacade {
     ApiResponse<ProductResponseDTO> updateProduct(String id, ProductUpdateDTO productRequest);
     ApiResponse<Void> deleteProduct(String id);
     ApiResponse<Void> deleteAllProducts();
+    ApiResponse getDeletedProducts(Pageable pageable);
 }

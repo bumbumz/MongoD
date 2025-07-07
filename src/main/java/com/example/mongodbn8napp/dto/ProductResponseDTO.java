@@ -18,6 +18,7 @@ public class ProductResponseDTO {
     private String categoryName; // Thêm trường categoryName
     private LocalDateTime dateAdd;
     private LocalDateTime dateUpdate;
+    private Boolean deleted;
     private Double price; // Thêm trường giá
     private Double discountPrice; // Giá sau giảm, không bắt buộc
     private ProductDescriptionDTO descriptionInfo;
